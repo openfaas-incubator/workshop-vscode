@@ -8,35 +8,18 @@ export INSTALL_K3S_EXEC='server --tls-san '$IP''
 
 curl -sLS get.k3s.io | sh -
 
-mkdir -p ~/.kube/
+mkdir -p /root/.kube/config
 
-cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
-sed -ie s/localhost/$IP/g ~/.kube/config
-
-chmod 777 ~/.kube/config
+cp /etc/rancher/k3s/k3s.yaml /root/.kube/config
+chmod 777 /root/.kube/config
 
 mkdir -p /home/coder/project/openfaas \
 && chmod 777 /home/coder/project/openfaas
 
-docker run --name vscode -v /home/coder/project/openfaas:/home/coder/project/openfaas \
--v /root/.kube/config:/home/coder/.kube/config -v /var/run/docker.sock:/var/run/docker.sock --privileged \
--p 8443:8443 -d alexellis2/coder:0.2.0 --allow-http --no-auth
+git clone https://github.com/openfaas/faas-netes
+cd faas-netes
 
-curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
-
-kubectl -n kube-system create sa tiller \
-  && kubectl create clusterrolebinding tiller \
-  --clusterrole cluster-admin \
-  --serviceaccount=kube-system:tiller
-
-helm init --skip-refresh --upgrade --service-account tiller
-
-kubectl rollout status deploy/tiller-deploy -n kube-system
-
-kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
-
-helm repo add openfaas https://openfaas.github.io/faas-netes/
-helm repo update
+kubectl apply -f namespaces.yml
 
 # generate a random password
 export PASSWORD=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
@@ -45,10 +28,7 @@ kubectl -n openfaas create secret generic basic-auth \
 --from-literal=basic-auth-user=admin \
 --from-literal=basic-auth-password="$PASSWORD"
 
-helm upgrade openfaas --install openfaas/openfaas \
-    --namespace openfaas  \
-    --set basic_auth=true \
-    --set functionNamespace=openfaas-fn
+kubectl apply -f ./yaml/
 
 kubectl rollout status deploy/queue-worker -n openfaas
 kubectl rollout status deploy/gateway -n openfaas
@@ -65,4 +45,13 @@ curl -SLs https://cli.openfaas.com | sh
 echo "echo -n $PASSWORD | faas-cli login -g $OPENFAAS_URL -u admin --password-stdin" > /home/coder/project/openfaas/02-run-this.txt
 
 chmod 777 -R /home/coder/project/openfaas
+
+# Run VSCode last
+
+sed -ie s/localhost/$IP/g /root/.kube/config
+chmod 777 /root/.kube/config
+
+docker run --name vscode -v /home/coder/project/openfaas:/home/coder/project/openfaas \
+-v /root/.kube/config:/home/coder/.kube/config -v /var/run/docker.sock:/var/run/docker.sock --privileged \
+-p 8443:8443 -d alexellis2/coder:0.2.0 --allow-http --no-auth
 
