@@ -51,6 +51,26 @@ INFO  Password: 7d6ae6958e8d7e882ba08f57
 
 Either run `/root/logs.sh` or `tail -f /var/log/cloud-init-output.log`
 
+## Automation
+
+Setup a VM using a script in the London region:
+
+```sh
+# ./provision-digitalocean.sh
+
+Creating: of-workshop-ebddfcaf
+==============================
+Droplet: of-workshop-ebddfcaf has been created
+IP: 178.128.42.184
+URL: https://178.128.42.184:8443
+Login: ssh root@178.128.42.184
+==============================
+To destroy this droplet run: doctl compute droplet delete -f 150218836
+
+```
+
+You'll be emailed the root password, which you can use to log in and get the VSCode password.
+
 ## Customize for your own workshops and training sessions
 
 There are two parts you can customize:
