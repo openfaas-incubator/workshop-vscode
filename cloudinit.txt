@@ -1,0 +1,59 @@
+#!/bin/bash
+
+curl -SLs https://get.docker.com | sudo sh
+
+curl -SLs https://ident.me/ -o IP.txt
+export IP=$(cat IP.txt)
+export INSTALL_K3S_EXEC='server --tls-san '$IP''
+
+curl -sLS get.k3s.io | sh -
+
+mkdir -p ~/.kube/
+
+cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sed -ie s/localhost/$IP/g ~/.kube/config
+
+chmod 777 ~/.kube/config
+
+docker run --name vscode -v /root/.kube/config:/home/coder/.kube/config -v /var/run/docker.sock:/var/run/docker.sock --privileged \
+-p 8443:8443 -d alexellis2/coder:0.1.0 --allow-http --no-auth
+
+git clone https://github.com/openfaas/faas
+git clone https://github.com/openfaas/faas-netes
+
+curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+
+kubectl -n kube-system create sa tiller \
+  && kubectl create clusterrolebinding tiller \
+  --clusterrole cluster-admin \
+  --serviceaccount=kube-system:tiller
+
+helm init --skip-refresh --upgrade --service-account tiller --wait
+
+kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
+
+helm repo add openfaas https://openfaas.github.io/faas-netes/
+
+# generate a random password
+PASSWORD=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+
+kubectl -n openfaas create secret generic basic-auth \
+--from-literal=basic-auth-user=admin \
+--from-literal=basic-auth-password="$PASSWORD"
+
+helm repo update \
+ && helm upgrade openfaas --install openfaas/openfaas \
+    --namespace openfaas  \
+    --set basic_auth=true \
+    --set functionNamespace=openfaas-fn --wait
+
+export OPENFAAS_URL=$IP:31112
+mkdir -p /home/coder/project/openfaas
+
+echo $OPENFAAS_URL > /home/coder/project/openfaas/url
+echo $PASWORD > /home/coder/project/openfaas/url
+echo "export OPENFAAS_URL=$OPENFAAS_URL" | tee -a /home/coder/.bashrc
+
+echo -n $PASSWORD | faas-cli login -g $OPENFAAS_URL -u admin --password-stdin
+
+faas-cli version
