@@ -15,7 +15,7 @@ sed -ie s/localhost/$IP/g ~/.kube/config
 
 chmod 777 ~/.kube/config
 
-RUN mkdir -p /home/coder/project/openfaas \
+mkdir -p /home/coder/project/openfaas \
 && chmod 777 /home/coder/project/openfaas
 
 docker run --name vscode -v /home/coder/project/openfaas:/home/coder/project/openfaas \
@@ -49,14 +49,15 @@ helm repo update \
     --set functionNamespace=openfaas-fn --wait
 
 export OPENFAAS_URL=$IP:31112
-mkdir -p /home/coder/project/openfaas
 
 echo $OPENFAAS_URL > /home/coder/project/openfaas/url
-echo $PASWORD > /home/coder/project/openfaas/url
+echo $PASWORD > /home/coder/project/openfaas/password
 
 echo "export OPENFAAS_URL=$OPENFAAS_URL" | tee -a /home/coder/.bashrc
 
+curl -SLs https://cli.openfaas.com | sh
+
 echo -n $PASSWORD | faas-cli login -g $OPENFAAS_URL -u admin --password-stdin
 
-faas-cli version
+chmod 777 -R /home/coder/project/openfaas
 
