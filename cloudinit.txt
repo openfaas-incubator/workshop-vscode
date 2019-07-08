@@ -29,11 +29,14 @@ kubectl -n kube-system create sa tiller \
   --clusterrole cluster-admin \
   --serviceaccount=kube-system:tiller
 
-helm init --skip-refresh --upgrade --service-account tiller --wait
+helm init --skip-refresh --upgrade --service-account tiller
+
+kubectl rollout status deploy/tiller-deploy -n kube-system
 
 kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
 
 helm repo add openfaas https://openfaas.github.io/faas-netes/
+helm repo update
 
 # generate a random password
 export PASSWORD=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
@@ -42,22 +45,24 @@ kubectl -n openfaas create secret generic basic-auth \
 --from-literal=basic-auth-user=admin \
 --from-literal=basic-auth-password="$PASSWORD"
 
-helm repo update \
- && helm upgrade openfaas --install openfaas/openfaas \
+helm upgrade openfaas --install openfaas/openfaas \
     --namespace openfaas  \
     --set basic_auth=true \
-    --set functionNamespace=openfaas-fn --wait
+    --set functionNamespace=openfaas-fn
+
+kubectl rollout status deploy/queue-worker -n openfaas
+kubectl rollout status deploy/gateway -n openfaas
 
 export OPENFAAS_URL=$IP:31112
 
-echo $OPENFAAS_URL > /home/coder/project/openfaas/url
-echo $PASWORD > /home/coder/project/openfaas/password
+echo $PASSWORD > /home/coder/project/openfaas/04-gateway-password
+echo $OPENFAAS_URL > /home/coder/project/openfaas/03-gateway-url
 
-echo "export OPENFAAS_URL=$OPENFAAS_URL" | tee -a /home/coder/.bashrc
+echo "export OPENFAAS_URL=$OPENFAAS_URL" | tee -a /home/coder/project/openfaas/01-add-to-bashrc.txt
 
 curl -SLs https://cli.openfaas.com | sh
 
-echo -n $PASSWORD | faas-cli login -g $OPENFAAS_URL -u admin --password-stdin
+echo "echo -n $PASSWORD | faas-cli login -g $OPENFAAS_URL -u admin --password-stdin" > /home/coder/project/openfaas/02-run-this.txt
 
 chmod 777 -R /home/coder/project/openfaas
 
