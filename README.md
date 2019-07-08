@@ -45,10 +45,16 @@ INFO  Password: 7d6ae6958e8d7e882ba08f57
 
 Either run `/root/logs.sh` or `tail -f /var/log/cloud-init-output.log`
 
-## VSCode Docker image
+## Customize for your own workshops and training sessions
 
-Docker image: alexellis2/coder:0.2.0
+There are two parts you can customize:
 
-See also [Dockerfile](./Dockerfile)
+* The Docker image: `alexellis2/coder:0.2.0`, which is built from [Dockerfile](./Dockerfile)
+
+The Docker image provides the VSCode hosting _and_ the CLI tools within the built-in terminal. The Docker image is derrived from [coder.com](https://coder.com).
+
+* The [./cloudinit.txt](./cloudinit.txt) which configures the VM
+
+For instance, if you wanted to run a workshop on *How to design helm charts* - you may comment out the references to OpenFaaS and install helm/tiller into the Docker image.
 
 
