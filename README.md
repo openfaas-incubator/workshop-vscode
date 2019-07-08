@@ -1,17 +1,23 @@
 # workshop-vscode
 
-OpenFaaS Workshop with in-browser version of VSCode
+OpenFaaS Workshop with in-browser version of VSCode from [coder.com](https://coder.com)
 
 All tools are pre-installed with OpenFaaS on Kubernetes (k3s) available in the browser terminal.
 
 ## How it works
 
 1) A Virtual Machine will be provisioned with a cloud hosting provider using cloudinit
-2) Kubernetes with k3s will be installed on the VM
-3) OpenFaaS will be installed into the k3s cluster
-4) A Docker image will be run which provides VSCode via a web-browser
+2) [Kubernetes](https://kubernetes.io/) with [k3s](https://k3s.io/) will be installed on the VM
+3) [OpenFaaS](https://www.openfaas.com/) will be installed into the k3s cluster
+4) A Docker image will be run which provides [VSCode](https://k3s.io/) via a web-browser
 5) The login password for VSCode will be obtained via `ssh`
 6) VSCode can now be used in web-browser via your VM's IP. The self-signed certificate will provide encryption and the login password will protect against tampering.
+
+## Why do we need this?
+
+This project provides a pre-installed Kubernetes environment within a VM so that your students can focus on your workshop.
+
+The example in this repository is for [The OpenFaaS Workshop](https://github.com/openfaas/workshop). It is estimated that it would save students 1.5-2 hours of set-up time. Instructors could also pre-provision a set amount of VMs ahead of time and then give out IP address and password combinations.
 
 ## Steps to provision on DigitalOcean
 
