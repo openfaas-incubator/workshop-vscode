@@ -12,6 +12,8 @@ RUN curl -sSLO https://storage.googleapis.com/kubernetes-release/release/v1.15.0
 RUN curl -sSL https://github.com/kubernetes-sigs/kind/releases/download/v0.4.0/kind-linux-amd64 -o /usr/local/bin/kind \
  && chmod +x /usr/local/bin/kind
 
+RUN curl -SLs https://cli.openfaas.com | sh
+
 RUN usermod -aG docker coder
 
 USER coder

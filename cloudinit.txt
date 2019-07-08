@@ -15,11 +15,12 @@ sed -ie s/localhost/$IP/g ~/.kube/config
 
 chmod 777 ~/.kube/config
 
-docker run --name vscode -v /root/.kube/config:/home/coder/.kube/config -v /var/run/docker.sock:/var/run/docker.sock --privileged \
--p 8443:8443 -d alexellis2/coder:0.1.0 --allow-http --no-auth
+RUN mkdir -p /home/coder/project/openfaas \
+&& chmod 777 /home/coder/project/openfaas
 
-git clone https://github.com/openfaas/faas
-git clone https://github.com/openfaas/faas-netes
+docker run --name vscode -v /home/coder/project/openfaas:/home/coder/project/openfaas \
+-v /root/.kube/config:/home/coder/.kube/config -v /var/run/docker.sock:/var/run/docker.sock --privileged \
+-p 8443:8443 -d alexellis2/coder:0.2.0 --allow-http --no-auth
 
 curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
 
@@ -35,7 +36,7 @@ kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/na
 helm repo add openfaas https://openfaas.github.io/faas-netes/
 
 # generate a random password
-PASSWORD=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+export PASSWORD=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 
 kubectl -n openfaas create secret generic basic-auth \
 --from-literal=basic-auth-user=admin \
@@ -52,8 +53,10 @@ mkdir -p /home/coder/project/openfaas
 
 echo $OPENFAAS_URL > /home/coder/project/openfaas/url
 echo $PASWORD > /home/coder/project/openfaas/url
+
 echo "export OPENFAAS_URL=$OPENFAAS_URL" | tee -a /home/coder/.bashrc
 
 echo -n $PASSWORD | faas-cli login -g $OPENFAAS_URL -u admin --password-stdin
 
 faas-cli version
+
