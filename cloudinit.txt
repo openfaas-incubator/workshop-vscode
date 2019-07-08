@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "tail -f /var/log/cloud-init-output.log" > /root/logs.sh
+chmod +x /root/logs.sh
+
 curl -SLs https://get.docker.com | sudo sh
 
 curl -SLs https://ident.me/ -o IP.txt
@@ -8,7 +11,7 @@ export INSTALL_K3S_EXEC='server --tls-san '$IP''
 
 curl -sLS get.k3s.io | sh -
 
-mkdir -p /root/.kube/config
+mkdir -p /root/.kube/
 
 cp /etc/rancher/k3s/k3s.yaml /root/.kube/config
 chmod 777 /root/.kube/config
@@ -51,7 +54,20 @@ chmod 777 -R /home/coder/project/openfaas
 sed -ie s/localhost/$IP/g /root/.kube/config
 chmod 777 /root/.kube/config
 
-docker run --name vscode -v /home/coder/project/openfaas:/home/coder/project/openfaas \
--v /root/.kube/config:/home/coder/.kube/config -v /var/run/docker.sock:/var/run/docker.sock --privileged \
--p 8443:8443 -d alexellis2/coder:0.2.0 --allow-http --no-auth
+mkdir -p /root/certs
+
+# Generate self-signed cert
+
+openssl req -nodes -newkey rsa:2048 -keyout /root/certs/tmp-openfaas-ltd.key -out /root/certs/tmp-openfaas-ltd.crt -x509 -days 365  -subj "/C=UK/ST=CAMBS/L=Peterborough/O=OpenFaaS Ltd/OU=Workshop/CN=$IP"
+
+chown 1000 -R ~/certs/
+
+docker run --name vscode -v /root/certs:/home/coder/certs \
+-v /home/coder/project/openfaas:/home/coder/project/openfaas \
+-v /root/.kube/config:/home/coder/.kube/config \
+-v /var/run/docker.sock:/var/run/docker.sock \
+--privileged \
+-p 8443:8443 \
+-d alexellis2/coder:0.2.0 --cert=/home/coder/certs/tmp-openfaas-ltd.crt --cert-key=/home/coder/certs/tmp-openfaas-ltd.key
+
 

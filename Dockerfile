@@ -18,5 +18,6 @@ RUN curl -SLs https://cli.openfaas.com | sh
 
 RUN usermod -aG docker coder
 
+ENV DISABLE_TELEMETRY=true
 
 USER coder
