@@ -37,7 +37,7 @@ Get the container's logs with:
 
 ```sh
 export IP=""
-ssh root@$IP "docker logs vscode | grep password"
+ssh root@$IP "docker logs vscode | grep Password"
 
 INFO  Password: 7d6ae6958e8d7e882ba08f57
 ```
