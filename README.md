@@ -19,24 +19,32 @@ This project provides a pre-installed Kubernetes environment within a VM so that
 
 The example in this repository is for [The OpenFaaS Workshop](https://github.com/openfaas/workshop). It is estimated that it would save students 1.5-2 hours of set-up time. Instructors could also pre-provision a set amount of VMs ahead of time and then give out IP address and password combinations.
 
-## Steps to provision on DigitalOcean
+## Quick-start
+
+You can run the instructions above on any cloud that supports cloudinit, or if you have a VM platform that does not allow, or support cloudinit, you can simply run the contents of "cloudinit.txt" as root on the VM after it has booted up.
+
+### Provision on DigitalOcean
 
 * [Get 100 USD free credit for 60 days](https://m.do.co/c/8d4e75e9886f)
 * Create a DigitalOcean VM size 4GB RAM in your local region
 * Add "user data" from `cloudinit.txt`
 * Pick "ssh" login or via root password over email
-* Locate the public IP given and navigate to `https://IP:8443`
-* You will need to accept the self-signed certificate, which will display as "insecure". Despite the warning, it will provide encryption for your connection.
-* You may have to wait for several minutes before the endpoint to comes up. See the second on Debugging if you want to check the logs.
-* Open a Terminal within VSCode and run through the files in ~/project/openfaas/
-* Next start the workshop from [Lab 2](https://github.com/openfaas/workshop#lab-2---test-things-out)
+* Deploy the VM
 
-## Steps to provision on Civo
+Skip to "After the deployment"
+
+### Provision on Civo
 
 * [Get 50 USD credits for new sign-ups](https://bit.ly/2Lx9d2o)
 * Create a Medium sized VM and get your login details
 * `cloudinit` is not available on Civo at this time, but you can log in after the VM is ready and run the script manually instead
 * Use `ssh` to connect to the instance, now paste in the content from `cloudinit.txt` into your terminal
+
+Skip to "After the deployment"
+
+### After the deployment
+
+* Locate the public IP given and navigate to `https://IP:8443` in a web-browser. This will open VSCode.
 * You will need to accept the self-signed certificate, which will display as "insecure". Despite the warning, it will provide encryption for your connection.
 * You may have to wait for several minutes before the endpoint to comes up. See the second on Debugging if you want to check the logs.
 * Open a Terminal within VSCode and run through the files in ~/project/openfaas/
