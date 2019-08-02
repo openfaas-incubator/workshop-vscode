@@ -31,6 +31,18 @@ The example in this repository is for [The OpenFaaS Workshop](https://github.com
 * Open a Terminal within VSCode and run through the files in ~/project/openfaas/
 * Next start the workshop from [Lab 2](https://github.com/openfaas/workshop#lab-2---test-things-out)
 
+## Steps to provision on Civo
+
+* [Get 50 USD credits for new sign-ups](https://bit.ly/2Lx9d2o)
+* Create a Medium sized VM and get your login details
+* `cloudinit` is not available on Civo at this time, so log in with `ssh`
+* Run the `cloudinit.txt` file with bash
+* You will need to accept the self-signed certificate, which will display as "insecure". Despite the warning, it will provide encryption for your connection.
+* You may have to wait for several minutes before the endpoint to comes up. See the second on Debugging if you want to check the logs.
+* Open a Terminal within VSCode and run through the files in ~/project/openfaas/
+* Next start the workshop from [Lab 2](https://github.com/openfaas/workshop#lab-2---test-things-out)
+
+
 ## Get your password
 
 Get the container's logs with:
