@@ -52,6 +52,7 @@ chmod 777 -R /home/coder/project/openfaas
 # Run VSCode last
 
 sed -ie s/localhost/$IP/g /root/.kube/config
+sed -ie s/127.0.0.1/$IP/g /root/.kube/config
 chmod 777 /root/.kube/config
 
 mkdir -p /root/certs
