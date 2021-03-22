@@ -5,45 +5,37 @@ chmod +x /root/logs.sh
 
 curl -SLs https://get.docker.com | sudo sh
 
-curl -SLs https://ident.me/ -o IP.txt
-export IP=$(cat IP.txt)
-export INSTALL_K3S_EXEC='server --tls-san '$IP''
+curl -SLs https://dl.get-arkade.dev | sudo sh
+arkade get k3sup && \
+arkade get kubectl && \
+arkade get faas-cli && \
+ sudo chmod +x $HOME/.arkade/bin/* && \
+ sudo mv $HOME/.arkade/bin/* /usr/local/bin/
 
-curl -sLS get.k3s.io | sh -
+export IP=$(curl -sfSL https://checkip.amazonaws.com)
+
+echo IP: $IP
 
 mkdir -p /root/.kube/
-
-cp /etc/rancher/k3s/k3s.yaml /root/.kube/config
-chmod 777 /root/.kube/config
+k3sup install --local --tls-san $IP \
+  --no-extras \
+  --merge --local-path=/root/.kube/config
 
 mkdir -p /home/coder/project/openfaas \
 && chmod 777 /home/coder/project/openfaas
 
-git clone https://github.com/openfaas/faas-netes
-cd faas-netes
+arkade install openfaas
 
-kubectl apply -f namespaces.yml
-
-# generate a random password
-export PASSWORD=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
-
-kubectl -n openfaas create secret generic basic-auth \
---from-literal=basic-auth-user=admin \
---from-literal=basic-auth-password="$PASSWORD"
-
-kubectl apply -f ./yaml/
-
-kubectl rollout status deploy/queue-worker -n openfaas
 kubectl rollout status deploy/gateway -n openfaas
 
-export OPENFAAS_URL=$IP:31112
+export OPENFAAS_URL=http://$IP:31112
 
+PASSWORD=$(kubectl get secret -n openfaas basic-auth -o jsonpath="{.data.basic-auth-password}" | base64 --decode; echo)
 echo $PASSWORD > /home/coder/project/openfaas/04-gateway-password
+
 echo $OPENFAAS_URL > /home/coder/project/openfaas/03-gateway-url
 
 echo "export OPENFAAS_URL=$OPENFAAS_URL" | tee -a /home/coder/project/openfaas/01-add-to-bashrc.txt
-
-curl -SLs https://cli.openfaas.com | sh
 
 echo "echo -n $PASSWORD | faas-cli login -g $OPENFAAS_URL -u admin --password-stdin" > /home/coder/project/openfaas/02-run-this.txt
 
@@ -59,16 +51,44 @@ mkdir -p /root/certs
 
 # Generate self-signed cert
 
-openssl req -nodes -newkey rsa:2048 -keyout /root/certs/tmp-openfaas-ltd.key -out /root/certs/tmp-openfaas-ltd.crt -x509 -days 365  -subj "/C=UK/ST=CAMBS/L=Peterborough/O=OpenFaaS Ltd/OU=Workshop/CN=$IP"
+openssl req -nodes -newkey rsa:2048 -keyout /root/certs/tmp-openfaas-ltd.key \
+ -out /root/certs/tmp-openfaas-ltd.crt -x509 -days 365 \
+ -subj "/C=UK/ST=CAMBS/L=Peterborough/O=OpenFaaS Ltd/OU=Workshop/CN=$IP"
 
-chown 1000 -R ~/certs/
+chown 1000 -R /root/certs/
 
-docker run --name vscode -v /root/certs:/home/coder/certs \
--v /home/coder/project/openfaas:/home/coder/project/openfaas \
--v /root/.kube/config:/home/coder/.kube/config \
--v /var/run/docker.sock:/var/run/docker.sock \
---privileged \
--p 8443:8443 \
--d alexellis2/coder:0.2.0 --cert=/home/coder/certs/tmp-openfaas-ltd.crt --cert-key=/home/coder/certs/tmp-openfaas-ltd.key
+pass=$(head -c 16 /dev/urandom | shasum | cut -d' ' -f1)
+hash=$(echo -n $pass | shasum | cut -d' ' -f1)
 
+mkdir -p /root/.config/code-server
 
+cat > /root/.config/code-server/config.yaml<<EOF
+bind-addr: 0.0.0.0:8443
+auth: password
+password: $pass
+EOF
+chmod 777 -R /root/.config
+
+useradd coder --uid 1000
+
+chown coder:coder -R /root/.config
+
+echo -n $pass > /home/coder/project/openfaas/01-add-to-bashrc.txt
+
+docker rm -f vscode
+docker run --name vscode \
+  --user coder \
+  -v /root/certs:/home/coder/certs \
+  -v /home/coder/project/openfaas:/home/coder/project/openfaas \
+  -v /root/.kube/config:/home/coder/.kube/config \
+  -v /root/.config/code-server:/home/coder/.config/code-server2 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e CODE_SERVER_CONFIG=/home/coder/.config/code-server2/config.yaml \
+  --restart=always \
+  --privileged \
+  -p 8443:8080 \
+  -d alexellis2/coder:2021-03-22 --config /home/coder/.config/code-server2/config.yaml --cert=/home/coder/certs/tmp-openfaas-ltd.crt --cert-key=/home/coder/certs/tmp-openfaas-ltd.key --disable-telemetry
+docker logs -f vscode
+
+echo Password for UI: $pass
+echo URL for UI: https://$IP:8443
