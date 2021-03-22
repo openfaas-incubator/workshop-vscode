@@ -88,7 +88,7 @@ docker run --name vscode \
   --privileged \
   -p 8443:8080 \
   -d alexellis2/coder:2021-03-22 --config /home/coder/.config/code-server2/config.yaml --cert=/home/coder/certs/tmp-openfaas-ltd.crt --cert-key=/home/coder/certs/tmp-openfaas-ltd.key --disable-telemetry
-docker logs -f vscode
+# docker logs -f vscode
 
 echo Password for UI: $pass
 echo URL for UI: https://$IP:8443
