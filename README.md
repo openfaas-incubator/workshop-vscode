@@ -2,7 +2,7 @@
 
 OpenFaaS Workshop with in-browser version of VSCode from [coder.com](https://coder.com)
 
-All tools are pre-installed with OpenFaaS on Kubernetes (k3s) available in the browser terminal.
+All tools are pre-installed with OpenFaaS on Kubernetes with k3s available in the browser terminal.
 
 ## How it works
 
@@ -48,8 +48,7 @@ Skip to "After the deployment"
 * You will need to accept the self-signed certificate, which will display as "insecure". Despite the warning, it will provide encryption for your connection.
 * You may have to wait for several minutes before the endpoint to comes up. See the second on Debugging if you want to check the logs.
 * Open a Terminal within VSCode and run through the files in ~/project/openfaas/
-* Next start the workshop from [Lab 2](https://github.com/openfaas/workshop#lab-2---test-things-out)
-
+* Next start the workshop from [Lab 2](https://github.com/openfaas/workshop)
 
 ## Get your password
 
@@ -95,7 +94,7 @@ You'll be emailed the root password, which you can use to log in and get the VSC
 
 There are two parts you can customize:
 
-* The Docker image: `alexellis2/coder:0.2.0`, which is built from [Dockerfile](./Dockerfile)
+* The Docker image: `alexellis2/coder:2021-03-22`, which is built from [Dockerfile](./Dockerfile)
 
 The Docker image provides the VSCode hosting _and_ the CLI tools within the built-in terminal. The Docker image is derrived from [coder.com](https://coder.com).
 
